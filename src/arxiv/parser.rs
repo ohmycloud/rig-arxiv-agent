@@ -122,16 +122,14 @@ impl<'a> ArxivParser<'a> {
 }
 
 fn convert_pdf_url(url: &str) -> String {
-    if url.contains("arxiv.org/abs/") {
+    // Ensure the URL uses HTTPS
+    let url = url.replace("http://", "https://");
+
+    if let Some(stripped) = url.strip_prefix("https://arxiv.org/abs/") {
         // Convert abstract URL to PDF URL
-        url.replace("arxiv.org/abs/", "arxiv.org/pdf/")
-            .replace("http://", "https://")
-            + ".pdf"
-    } else if url.contains("arxiv.org/pdf/") {
-        // Ensure PDF URL uses HTTPS
-        url.replace("http://", "https://")
+        format!("https://arxiv.org/pdf/{}.pdf", stripped)
     } else {
-        // Fallback for other URLs
-        url.replace("http://", "https://")
+        // For PDF URLs or other URLs, return as is
+        url
     }
 }
