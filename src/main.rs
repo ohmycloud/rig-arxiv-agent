@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use axum::{
     Router,
     extract::{Json, State},
@@ -6,15 +5,16 @@ use axum::{
     routing::{get, post},
 };
 use rig::{
+    client::{CompletionClient, ProviderClient},
     completion::Prompt,
-    providers::openai::{self, GPT_4},
+    providers::deepseek::{self, DEEPSEEK_CHAT},
 };
 use rig_arxiv_agent::arxiv::tools::{self, ArxivSearchTool, Paper};
 use serde::Deserialize;
-use tower_http::cors::{Any, CorsLayer};
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::net::TcpListener;
-
+use tower_http::cors::{Any, CorsLayer};
 
 // Request structure for search endpoint
 #[derive(Deserialize)]
@@ -46,7 +46,7 @@ where
 
 // State structure to hold shared data
 struct AppState {
-    openai_client: openai::Client,
+    deepseek_client: deepseek::Client,
 }
 
 // Handler for serving the static index.html
@@ -59,8 +59,8 @@ async fn search_papers(
     State(state): State<Arc<AppState>>,
     Json(request): Json<SearchRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let paper_agent = state.openai_client
-        .agent(GPT_4)
+    let paper_agent = state.deepseek_client
+        .agent(DEEPSEEK_CHAT)
         .preamble(
             "You are a helpful research assistant that can search and analyze academic papers from arXiv. \
              When asked about a research topic, use the search_arxiv tool to find relevant papers and \
@@ -84,12 +84,10 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     // Initialize OpenAI client from env
-    let openai_client = openai::Client::from_env();
+    let deepseek_client = deepseek::Client::from_env();
 
     // Create shared state
-    let state = Arc::new(AppState {
-        openai_client,
-    });
+    let state = Arc::new(AppState { deepseek_client });
 
     // Set up CORS
     let cors = CorsLayer::new()

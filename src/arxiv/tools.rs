@@ -65,7 +65,7 @@ impl Tool for ArxivSearchTool {
                         "description": "Maximum number of results to return (default: 5)"
                     }
                 },
-                "required": ["query"]
+                "required": ["query", "max_results"]
             }),
         }
     }

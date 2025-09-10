@@ -5,16 +5,16 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.95"
-axum = "0.8.1"
-quick-xml = { version = "0.37.2", features = ["serialize"] }
+axum = "0.8.4"
+quick-xml = { version = "0.38.3", features = ["serialize"] }
 reqwest = "0.12.12"
-rig-core = "0.6.0"
-serde = { version = "1.0.217", features = ["derive"] }
+rig-core = "0.19.0"
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.135"
 tera = "1.20.0"
 thiserror = "2.0.11"
-tokio = { version = "1.43.0", features = ["full"] }
-tower-http = { version = "0.6.2", features = ["cors", "fs"] }
+tokio = { version = "1.43.0", features = ["macros","rt-multi-thread"] }
+tower-http = { version = "0.6.6", features = ["cors", "fs"] }
 tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
+tracing-subscriber = "0.3.20"
 urlencoding = "2.1.3"
