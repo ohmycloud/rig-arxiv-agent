@@ -61,6 +61,7 @@ async fn search_papers(
 ) -> Result<impl IntoResponse, AppError> {
     let paper_agent = state.deepseek_client
         .agent(DEEPSEEK_CHAT)
+        .name("arxiv-agent")
         .preamble(
             "You are a helpful research assistant that can search and analyze academic papers from arXiv. \
              When asked about a research topic, use the search_arxiv tool to find relevant papers and \
