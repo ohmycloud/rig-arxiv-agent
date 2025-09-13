@@ -7,7 +7,7 @@ use axum::{
 use rig::{
     client::{CompletionClient, ProviderClient},
     completion::Prompt,
-    providers::deepseek::{self, DEEPSEEK_CHAT},
+    providers::openai::{self, GPT_4},
 };
 use rig_arxiv_agent::arxiv::tools::{self, ArxivSearchTool, Paper};
 use serde::Deserialize;
@@ -46,7 +46,7 @@ where
 
 // State structure to hold shared data
 struct AppState {
-    deepseek_client: deepseek::Client,
+    openai_client: openai::Client,
 }
 
 // Handler for serving the static index.html
@@ -59,13 +59,13 @@ async fn search_papers(
     State(state): State<Arc<AppState>>,
     Json(request): Json<SearchRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let paper_agent = state.deepseek_client
-        .agent(DEEPSEEK_CHAT)
+    let paper_agent = state.openai_client
+        .agent(GPT_4)
         .name("arxiv-agent")
         .preamble(
             "You are a helpful research assistant that can search and analyze academic papers from arXiv. \
              When asked about a research topic, use the search_arxiv tool to find relevant papers and \
-             return only the raw JSON response from the tool."
+             return only the raw JSON string response from the tool without markdown label."
         )
         .tool(ArxivSearchTool)
         .build();
@@ -73,6 +73,8 @@ async fn search_papers(
     let response = paper_agent.prompt(&request.query).await?;
 
     let papers: Vec<Paper> = serde_json::from_str(&response)?;
+
+    tracing::debug!("Serde Json Response: {:?}", &papers);
 
     // Format the papers into HTML table
     let html = tools::format_papers_as_html(&papers)?;
@@ -85,10 +87,10 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     // Initialize OpenAI client from env
-    let deepseek_client = deepseek::Client::from_env();
+    let openai_client = openai::Client::from_env();
 
     // Create shared state
-    let state = Arc::new(AppState { deepseek_client });
+    let state = Arc::new(AppState { openai_client });
 
     // Set up CORS
     let cors = CorsLayer::new()
